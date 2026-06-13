@@ -4,7 +4,7 @@ import requests
 import os
 
 
-API_KEY = os.getenv("FMP_API_KEY", "YOUR_FMP_API_KEY")
+API_KEY = os.getenv("FMP_API_KEY", "7wfaoju6F7rTcZymBjnZCZtJLHUDykmx")
 
 
 # =========================
