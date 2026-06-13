@@ -6,13 +6,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Screener API is running"
+    return "API is running"
 
 @app.route("/run")
 def run():
-
     data = run_screener()
-
     return jsonify({
         "status": "success",
         "count": len(data),
