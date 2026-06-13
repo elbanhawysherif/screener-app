@@ -1,9 +1,14 @@
 from flask import Flask, jsonify
 from screener import run_screener
+import os
 
 app = Flask(__name__)
 
-@app.route("/run", methods=["GET"])
+@app.route("/")
+def home():
+    return "Screener API is running"
+
+@app.route("/run")
 def run():
 
     data = run_screener()
@@ -11,9 +16,9 @@ def run():
     return jsonify({
         "status": "success",
         "count": len(data),
-        "data": data
+        "results": data
     })
 
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
