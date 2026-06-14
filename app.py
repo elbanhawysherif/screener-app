@@ -9,7 +9,6 @@ def home():
 
 @app.route("/run")
 def run():
-
     data = run_screener()
 
     return jsonify({
