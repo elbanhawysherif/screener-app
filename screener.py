@@ -3,7 +3,7 @@ import os
 
 def run_screener():
 
-    API_KEY = os.environ.get("7wfaoju6F7rTcZymBjnZCZtJLHUDykmx")
+    API_KEY = os.environ.get("API_KEY")
 
     if not API_KEY:
         return [{"error": "Missing FMP_API_KEY in environment variables"}]
