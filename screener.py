@@ -1,44 +1,67 @@
 import requests
 import os
+import pandas as pd
+
+def get_sp500_symbols():
+
+    url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+
+    tables = pd.read_html(url)
+
+    df = tables[0]
+
+    # Column: Symbol
+    return df["Symbol"].tolist()
+
 
 def run_screener():
 
     key = os.environ.get("FINNHUB_API_KEY")
 
-    symbols = [
-        "AAPL",
-        "MSFT",
-        "NVDA",
-        "AMZN",
-        "META"
-    ]
+    symbols = get_sp500_symbols()
 
     results = []
 
+    # limit for performance (IMPORTANT for Render + free API)
+    symbols = symbols[:100]
+
     for symbol in symbols:
 
-        url = (
-            f"https://finnhub.io/api/v1/quote"
-            f"?symbol={symbol}"
-            f"&token={key}"
-        )
+        try:
+            url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={key}"
+            r = requests.get(url, timeout=10)
 
-        r = requests.get(url, timeout=15)
+            if r.status_code != 200:
+                continue
 
-        if r.status_code != 200:
+            data = r.json()
+
+            price = data.get("c")
+            prev = data.get("pc")
+
+            if not price or not prev:
+                continue
+
+            change_pct = ((price - prev) / prev) * 100
+
+            results.append({
+                "symbol": symbol,
+                "price": price,
+                "change_pct": round(change_pct, 2),
+                "high": data.get("h"),
+                "low": data.get("l"),
+            })
+
+        except Exception:
             continue
 
-        data = r.json()
+    # ranking (momentum + volatility)
+    for r in results:
+        r["score"] = round(abs(r["change_pct"]) + (r["high"] - r["low"]) * 0.1, 2)
 
-        results.append({
-            "symbol": symbol,
-            "price": data.get("c"),
-            "high": data.get("h"),
-            "low": data.get("l"),
-            "open": data.get("o"),
-            "previous_close": data.get("pc")
-        })
+    results.sort(key=lambda x: x["score"], reverse=True)
 
-    results.sort(key=lambda x: x["price"] or 0)
-
-    return results
+    return {
+        "count": len(results),
+        "results": results[:20]   # top 20 only
+    }
