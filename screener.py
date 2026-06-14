@@ -73,35 +73,14 @@ def explain_signal(symbol, change_pct, range_pct, price, prev_close):
 # SMART UNIVERSE FILTER
 # -----------------------------
 def get_universe(key):
-
     url = f"https://finnhub.io/api/v1/stock/symbol?exchange=US&token={key}"
     r = requests.get(url, timeout=20)
 
-    if r.status_code != 200:
-        return []
-
     data = r.json()
 
-    symbols = []
+    print("UNIVERSE SIZE:", len(data))
 
-    for item in data:
-
-        symbol = item.get("symbol")
-
-        if not symbol:
-            continue
-
-        if len(symbol) > 6:
-            continue
-
-        if "." in symbol or "-" in symbol:
-            continue
-
-        if symbol.isdigit():
-            continue
-
-        symbols.append(symbol)
-
+    return [x["symbol"] for x in data[:50]]
     # limit universe for performance
     return symbols[:250]
 
