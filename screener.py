@@ -2,7 +2,7 @@ import requests
 import os
 
 # -----------------------------
-# SIGNAL CLASSIFIER
+# SIGNAL CLASSIFICATION (BASIC STRUCTURE)
 # -----------------------------
 def classify_stock(change_pct, range_pct, price, prev_close):
 
@@ -22,6 +22,51 @@ def classify_stock(change_pct, range_pct, price, prev_close):
         return "💤 NOISE"
 
     return "📊 NORMAL"
+
+
+# -----------------------------
+# MOMENTUM SCORING (MULTI-DAY EDGE SIMULATION)
+# -----------------------------
+def momentum_score(change_pct, range_pct):
+
+    score = abs(change_pct) * 2 + range_pct * 1.5
+
+    if abs(change_pct) > 2:
+        score += 2
+
+    if abs(change_pct) < 0.5:
+        score -= 2
+
+    return round(score, 2)
+
+
+# -----------------------------
+# AI-STYLE EXPLANATION LAYER (RULE BASED)
+# -----------------------------
+def explain_signal(symbol, change_pct, range_pct, price, prev_close):
+
+    trend = "bullish" if price > prev_close else "bearish"
+    strength = abs(change_pct)
+
+    parts = []
+
+    if strength > 2:
+        parts.append("strong price momentum with elevated volatility")
+    elif strength > 1:
+        parts.append("moderate directional momentum")
+    else:
+        parts.append("low directional pressure")
+
+    if range_pct > 3:
+        parts.append("high intraday volatility indicating active trading")
+    elif range_pct > 1.5:
+        parts.append("moderate volatility with stable flow")
+    else:
+        parts.append("low volatility environment")
+
+    parts.append(f"overall {trend} bias vs previous close")
+
+    return f"{symbol} shows " + ", ".join(parts) + "."
 
 
 # -----------------------------
@@ -62,26 +107,26 @@ def run_screener():
             range_pct = ((high - low) / price) * 100 if high and low else 0
 
             signal = classify_stock(change_pct, range_pct, price, prev)
+            score = momentum_score(change_pct, range_pct)
 
-            # FILTER OUT NOISE
             if signal == "💤 NOISE":
                 continue
 
-            score = abs(change_pct) * 2 + range_pct * 1.2
+            explanation = explain_signal(s, change_pct, range_pct, price, prev)
 
             results.append({
                 "symbol": s,
                 "price": round(price, 2),
                 "change_pct": round(change_pct, 2),
                 "range_pct": round(range_pct, 2),
-                "score": round(score, 2),
-                "signal": signal
+                "score": score,
+                "signal": signal,
+                "explanation": explanation
             })
 
         except Exception:
             continue
 
-    # sort by strongest signals
     results.sort(key=lambda x: x["score"], reverse=True)
 
     # -----------------------------
@@ -91,18 +136,13 @@ def run_screener():
 
     for r in results[:10]:
 
-        line = (
-            f"{r['symbol']} | "
-            f"${r['price']} | "
-            f"{r['change_pct']}% | "
-            f"{r['signal']} | "
-            f"Score: {r['score']}"
+        formatted_lines.append(
+            f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
+            f"{r['signal']} | Score: {r['score']}\n→ {r['explanation']}"
         )
-
-        formatted_lines.append(line)
 
     return {
         "count": len(results),
         "results": results[:10],
-        "formatted": "\n".join(formatted_lines)
+        "formatted": "\n\n".join(formatted_lines)
     }
