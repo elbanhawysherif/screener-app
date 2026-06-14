@@ -1,16 +1,18 @@
 from flask import Flask, jsonify
+from screener import run_screener
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "VERSION_999_WORKING"
+    return "OK"
 
 @app.route("/run")
 def run():
 
+    data = run_screener()
+
     return jsonify({
-        "version": "999",
-        "count": 1,
-        "results": [{"symbol": "TEST", "price": 123}]
+        "count": len(data),
+        "results": data
     })
