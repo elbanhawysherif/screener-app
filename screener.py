@@ -1,24 +1,20 @@
-from flask import Flask, jsonify
-import traceback
+import requests
+from bs4 import BeautifulSoup
 
-app = Flask(__name__)
+def get_sp500_symbols():
 
-@app.route("/run")
-def run():
+    url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
-    try:
-        from screener import get_sp500_symbols
+    r = requests.get(url, timeout=15)
+    soup = BeautifulSoup(r.text, "html.parser")
 
-        symbols = get_sp500_symbols()
+    table = soup.find("table", {"id": "constituents"})
 
-        return jsonify({
-            "count": len(symbols),
-            "sample": symbols[:10]
-        })
+    symbols = []
 
-    except Exception as e:
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if cols:
+            symbols.append(cols[0].text.strip())
 
-        return jsonify({
-            "error": str(e),
-            "trace": traceback.format_exc()
-        })
+    return symbols
