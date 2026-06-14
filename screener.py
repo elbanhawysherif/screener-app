@@ -1,12 +1,12 @@
 import requests
 import os
-
 import json
 
 CACHE_FILE = "cache.json"
 
+
 # -----------------------------
-# UNIVERSE BUILDER
+# UNIVERSE
 # -----------------------------
 def get_universe(key):
 
@@ -35,11 +35,11 @@ def get_universe(key):
 
         symbols.append(symbol)
 
-    return symbols[:50]
+    return symbols[:50]   # 👈 reduced for stability
 
 
 # -----------------------------
-# SIGNAL CLASSIFICATION
+# SIGNAL
 # -----------------------------
 def classify_stock(change_pct, range_pct, price, prev_close):
 
@@ -62,7 +62,7 @@ def classify_stock(change_pct, range_pct, price, prev_close):
 
 
 # -----------------------------
-# MOMENTUM SCORE
+# SCORE
 # -----------------------------
 def momentum_score(change_pct, range_pct):
 
@@ -78,7 +78,7 @@ def momentum_score(change_pct, range_pct):
 
 
 # -----------------------------
-# EXPLANATION ENGINE
+# EXPLANATION
 # -----------------------------
 def explain_signal(symbol, change_pct, range_pct, price, prev_close):
 
@@ -107,11 +107,14 @@ def explain_signal(symbol, change_pct, range_pct, price, prev_close):
 
 
 # -----------------------------
-# MAIN SCREENER
+# MAIN SCREENER (NOW WITH CACHE)
 # -----------------------------
 def run_screener():
 
     key = os.environ.get("FINNHUB_API_KEY")
+
+    if not key:
+        return {"error": "Missing FINNHUB_API_KEY"}
 
     symbols = get_universe(key)
 
@@ -133,13 +136,10 @@ def run_screener():
             high = data.get("h")
             low = data.get("l")
 
-            # -------------------------
-            # SAFE VALIDATION (FIXED ORDER)
-            # -------------------------
             if not price or not prev:
                 continue
 
-            # MID-CAP FILTER (FIXED LOCATION)
+            # safety filter
             if price < 15 or price > 300:
                 continue
 
@@ -169,9 +169,10 @@ def run_screener():
     results.sort(key=lambda x: x["score"], reverse=True)
 
     # -----------------------------
-    # TEXT OUTPUT
+    # FORMAT OUTPUT
     # -----------------------------
     text_blocks = []
+    html_blocks = []
 
     for r in results[:10]:
 
@@ -181,15 +182,6 @@ def run_screener():
             f"→ {r['explanation']}"
         )
 
-    pretty_text = "\n\n".join(text_blocks).strip()
-
-    # -----------------------------
-    # HTML OUTPUT
-    # -----------------------------
-    html_blocks = []
-
-    for r in results[:10]:
-
         html_blocks.append(f"""
         <p>
             <b>{r['symbol']}</b> | ${r['price']} | {r['change_pct']}% | {r['signal']} | Score: {r['score']}<br>
@@ -198,7 +190,22 @@ def run_screener():
         <hr>
         """)
 
+    pretty_text = "\n\n".join(text_blocks).strip()
     pretty_html = "".join(html_blocks)
+
+    # -----------------------------
+    # SAVE CACHE (IMPORTANT)
+    # -----------------------------
+    try:
+        with open(CACHE_FILE, "w") as f:
+            json.dump({
+                "count": len(results),
+                "results": results[:10],
+                "pretty_text": pretty_text,
+                "pretty_html": pretty_html
+            }, f)
+    except Exception as e:
+        print("Cache write failed:", e)
 
     return {
         "count": len(results),
@@ -206,5 +213,3 @@ def run_screener():
         "pretty_text": pretty_text,
         "pretty_html": pretty_html
     }
-    
-
