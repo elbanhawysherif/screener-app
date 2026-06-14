@@ -207,9 +207,4 @@ def run_screener():
         "pretty_html": pretty_html
     }
     
-with open(CACHE_FILE, "w") as f:
-    json.dump({
-        "results": results[:200],
-        "pretty_html": pretty_html,
-        "pretty_text": pretty_text
-    }, f)
+
