@@ -1,6 +1,48 @@
 import requests
 import os
 
+# get list of stocks dynamically
+def get_universe(key):
+
+    url = f"https://finnhub.io/api/v1/stock/symbol?exchange=US&token={key}"
+    r = requests.get(url, timeout=20)
+
+    if r.status_code != 200:
+        return []
+
+    data = r.json()
+
+    symbols = []
+
+    for item in data:
+
+        symbol = item.get("symbol")
+
+        # basic cleanup filters
+        if not symbol:
+            continue
+
+        # remove weird tickers (options, OTC junk)
+        if len(symbol) > 6:
+            continue
+
+        if "." in symbol:
+            continue
+
+        symbols.append(symbol)
+
+    return symbols[:200]  # limit for performance
+
+
+
+
+
+
+
+
+
+
+
 # -----------------------------
 # SIGNAL CLASSIFICATION
 # -----------------------------
@@ -80,11 +122,7 @@ def run_screener():
 
     key = os.environ.get("FINNHUB_API_KEY")
 
-    symbols = [
-        "TSLA","LLY","AMZN","JPM","AAPL",
-        "MRK","ABBV","GOOGL","V","AVGO",
-        "META","MSFT","NVDA","HD","PEP"
-    ]
+    symbols = get_universe(key)
 
     results = []
 
@@ -104,6 +142,13 @@ def run_screener():
             high = data.get("h")
             low = data.get("l")
 
+if price < 10 or price > 500:
+    continue
+
+    if price < 15 or price > 300:
+    continue
+
+            
             if not price or not prev:
                 continue
 
