@@ -5,18 +5,24 @@ def run_screener():
 
     API_KEY = os.environ.get("FMP_API_KEY")
 
-    symbols = "AAPL,MSFT"
-
-    url = f"https://financialmodelingprep.com/api/v3/quote/{symbols}?apikey={API_KEY}"
-
-    r = requests.get(url, timeout=15)
-    data = r.json()
+    symbols = ["AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "GOOGL"]
 
     results = []
 
-    if isinstance(data, list):
+    for symbol in symbols:
 
-        for stock in data:
+        url = f"https://financialmodelingprep.com/api/v3/quote/{symbol}?apikey={API_KEY}"
+
+        r = requests.get(url, timeout=10)
+
+        if r.status_code != 200:
+            continue
+
+        data = r.json()
+
+        if isinstance(data, list) and len(data) > 0:
+
+            stock = data[0]
 
             price = stock.get("price")
 
@@ -25,7 +31,13 @@ def run_screener():
 
             results.append({
                 "symbol": stock.get("symbol"),
-                "price": price
+                "price": price,
+                "change": stock.get("change"),
+                "changePercent": stock.get("changesPercentage"),
+                "volume": stock.get("volume")
             })
+
+    # sort low → high
+    results = sorted(results, key=lambda x: x["price"])
 
     return results
