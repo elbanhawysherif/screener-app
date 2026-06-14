@@ -31,13 +31,17 @@ def momentum_score(change_pct, range_pct):
 
     score = abs(change_pct) * 2 + range_pct * 1.5
 
-    if abs(change_pct) > 2:
+    if abs_change_safe(change_pct) > 2:
         score += 2
 
-    if abs(change_pct) < 0.5:
+    if abs_change_safe(change_pct) < 0.5:
         score -= 2
 
     return round(score, 2)
+
+
+def abs_change_safe(x):
+    return abs(x)
 
 
 # -----------------------------
@@ -129,9 +133,9 @@ def run_screener():
     results.sort(key=lambda x: x["score"], reverse=True)
 
     # -----------------------------
-    # CLEAN PARAGRAPH OUTPUT
+    # TEXT OUTPUT (PARAGRAPHS)
     # -----------------------------
-    formatted_lines = []
+    text_blocks = []
 
     for r in results[:10]:
 
@@ -141,12 +145,35 @@ def run_screener():
             f"→ {r['explanation']}"
         )
 
-        formatted_lines.append(block)
+        text_blocks.append(block)
 
-    pretty_text = "\n\n".join(formatted_lines)
+    pretty_text = "\n\n".join(text_blocks).strip()
 
+    # -----------------------------
+    # HTML OUTPUT (BEST FOR ZAPIER EMAIL)
+    # -----------------------------
+    html_blocks = []
+
+    for r in results[:10]:
+
+        block = f"""
+        <p>
+            <b>{r['symbol']}</b> | ${r['price']} | {r['change_pct']}% | {r['signal']} | Score: {r['score']}<br>
+            → {r['explanation']}
+        </p>
+        <hr>
+        """
+
+        html_blocks.append(block)
+
+    pretty_html = "".join(html_blocks)
+
+    # -----------------------------
+    # FINAL RETURN
+    # -----------------------------
     return {
         "count": len(results),
         "results": results[:10],
-        "pretty_text": pretty_text
+        "pretty_text": pretty_text,
+        "pretty_html": pretty_html
     }
