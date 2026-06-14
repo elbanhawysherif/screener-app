@@ -1,16 +1,33 @@
 import requests
 import os
 
+def classify_stock(change_pct, range_pct):
+
+    abs_change = abs(change_pct)
+
+    if abs_change > 2 and range_pct > 2:
+        return "🚀 BREAKOUT"
+
+    elif abs_change > 1.5:
+        return "🔥 MOMENTUM"
+
+    elif abs_change > 0.8 and change_pct < 0:
+        return "⚠️ REVERSION"
+
+    elif abs_change < 0.5:
+        return "💤 NOISE"
+
+    return "📊 NORMAL"
+
+
 def run_screener():
 
     key = os.environ.get("FINNHUB_API_KEY")
 
-    # stable S&P 100 subset (SAFE for production)
     symbols = [
-        "AAPL", "MSFT", "NVDA", "AMZN", "META",
-        "TSLA", "GOOGL", "AVGO", "JPM", "V",
-        "UNH", "XOM", "LLY", "MA", "HD",
-        "PG", "COST", "MRK", "ABBV", "PEP"
+        "TSLA","LLY","AMZN","JPM","AAPL",
+        "MRK","ABBV","GOOGL","V","AVGO",
+        "META","MSFT","NVDA","HD","PEP"
     ]
 
     results = []
@@ -37,15 +54,24 @@ def run_screener():
             change_pct = ((price - prev) / prev) * 100
             range_pct = ((high - low) / price) * 100 if high and low else 0
 
-            # simple hedge-fund scoring model
-            score = abs(change_pct) * 2 + range_pct
+            signal = classify_stock(change_pct, range_pct)
+
+            # FILTER OUT NOISE
+            if signal == "💤 NOISE":
+                continue
+
+            score = (
+                abs(change_pct) * 2 +
+                range_pct * 1.2
+            )
 
             results.append({
                 "symbol": s,
                 "price": round(price, 2),
                 "change_pct": round(change_pct, 2),
                 "range_pct": round(range_pct, 2),
-                "score": round(score, 2)
+                "score": round(score, 2),
+                "signal": signal
             })
 
         except Exception:
