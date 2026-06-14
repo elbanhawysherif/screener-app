@@ -1,7 +1,9 @@
 import requests
 import os
 
-# get list of stocks dynamically
+# -----------------------------
+# UNIVERSE BUILDER
+# -----------------------------
 def get_universe(key):
 
     url = f"https://finnhub.io/api/v1/stock/symbol?exchange=US&token={key}"
@@ -18,11 +20,9 @@ def get_universe(key):
 
         symbol = item.get("symbol")
 
-        # basic cleanup filters
         if not symbol:
             continue
 
-        # remove weird tickers (options, OTC junk)
         if len(symbol) > 6:
             continue
 
@@ -31,16 +31,7 @@ def get_universe(key):
 
         symbols.append(symbol)
 
-    return symbols[:200]  # limit for performance
-
-
-
-
-
-
-
-
-
+    return symbols[:200]
 
 
 # -----------------------------
@@ -73,17 +64,13 @@ def momentum_score(change_pct, range_pct):
 
     score = abs(change_pct) * 2 + range_pct * 1.5
 
-    if abs_change_safe(change_pct) > 2:
+    if abs(change_pct) > 2:
         score += 2
 
-    if abs_change_safe(change_pct) < 0.5:
+    if abs(change_pct) < 0.5:
         score -= 2
 
     return round(score, 2)
-
-
-def abs_change_safe(x):
-    return abs(x)
 
 
 # -----------------------------
@@ -142,14 +129,14 @@ def run_screener():
             high = data.get("h")
             low = data.get("l")
 
-if price < 10 or price > 500:
-    continue
-
-    if price < 15 or price > 300:
-    continue
-
-            
+            # -------------------------
+            # SAFE VALIDATION (FIXED ORDER)
+            # -------------------------
             if not price or not prev:
+                continue
+
+            # MID-CAP FILTER (FIXED LOCATION)
+            if price < 15 or price > 300:
                 continue
 
             change_pct = ((price - prev) / prev) * 100
@@ -178,44 +165,37 @@ if price < 10 or price > 500:
     results.sort(key=lambda x: x["score"], reverse=True)
 
     # -----------------------------
-    # TEXT OUTPUT (PARAGRAPHS)
+    # TEXT OUTPUT
     # -----------------------------
     text_blocks = []
 
     for r in results[:10]:
 
-        block = (
+        text_blocks.append(
             f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
             f"{r['signal']} | Score: {r['score']}\n"
             f"→ {r['explanation']}"
         )
 
-        text_blocks.append(block)
-
     pretty_text = "\n\n".join(text_blocks).strip()
 
     # -----------------------------
-    # HTML OUTPUT (BEST FOR ZAPIER EMAIL)
+    # HTML OUTPUT
     # -----------------------------
     html_blocks = []
 
     for r in results[:10]:
 
-        block = f"""
+        html_blocks.append(f"""
         <p>
             <b>{r['symbol']}</b> | ${r['price']} | {r['change_pct']}% | {r['signal']} | Score: {r['score']}<br>
             → {r['explanation']}
         </p>
         <hr>
-        """
-
-        html_blocks.append(block)
+        """)
 
     pretty_html = "".join(html_blocks)
 
-    # -----------------------------
-    # FINAL RETURN
-    # -----------------------------
     return {
         "count": len(results),
         "results": results[:10],
