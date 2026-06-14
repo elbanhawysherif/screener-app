@@ -82,7 +82,7 @@ def get_universe(key):
 
     return [x["symbol"] for x in data[:50]]
     # limit universe for performance
-    return symbols[:250]
+    return symbols[:100]
 
 
 # -----------------------------
