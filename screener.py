@@ -146,4 +146,3 @@ for r in results[:10]:
     formatted_lines.append(block)
 
 pretty_text = "\n\n".join(formatted_lines)
-    }
