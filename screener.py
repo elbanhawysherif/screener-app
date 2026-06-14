@@ -2,7 +2,7 @@ import requests
 import os
 
 # -----------------------------
-# SIGNAL CLASSIFICATION (BASIC STRUCTURE)
+# SIGNAL CLASSIFICATION
 # -----------------------------
 def classify_stock(change_pct, range_pct, price, prev_close):
 
@@ -25,7 +25,7 @@ def classify_stock(change_pct, range_pct, price, prev_close):
 
 
 # -----------------------------
-# MOMENTUM SCORING (MULTI-DAY EDGE SIMULATION)
+# MOMENTUM SCORE
 # -----------------------------
 def momentum_score(change_pct, range_pct):
 
@@ -41,18 +41,18 @@ def momentum_score(change_pct, range_pct):
 
 
 # -----------------------------
-# AI-STYLE EXPLANATION LAYER (RULE BASED)
+# EXPLANATION ENGINE
 # -----------------------------
 def explain_signal(symbol, change_pct, range_pct, price, prev_close):
 
     trend = "bullish" if price > prev_close else "bearish"
-    strength = abs(change_pct)
+    abs_change = abs(change_pct)
 
     parts = []
 
-    if strength > 2:
+    if abs_change > 2:
         parts.append("strong price momentum with elevated volatility")
-    elif strength > 1:
+    elif abs_change > 1:
         parts.append("moderate directional momentum")
     else:
         parts.append("low directional pressure")
@@ -108,11 +108,10 @@ def run_screener():
 
             signal = classify_stock(change_pct, range_pct, price, prev)
             score = momentum_score(change_pct, range_pct)
+            explanation = explain_signal(s, change_pct, range_pct, price, prev)
 
             if signal == "💤 NOISE":
                 continue
-
-            explanation = explain_signal(s, change_pct, range_pct, price, prev)
 
             results.append({
                 "symbol": s,
@@ -130,19 +129,24 @@ def run_screener():
     results.sort(key=lambda x: x["score"], reverse=True)
 
     # -----------------------------
-    # FORMATTED OUTPUT (ONE STOCK PER LINE)
+    # CLEAN PARAGRAPH OUTPUT
     # -----------------------------
-
     formatted_lines = []
 
-for r in results[:10]:
+    for r in results[:10]:
 
-    block = (
-        f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
-        f"{r['signal']} | Score: {r['score']}\n"
-        f"{r['explanation']}"
-    )
+        block = (
+            f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
+            f"{r['signal']} | Score: {r['score']}\n"
+            f"→ {r['explanation']}"
+        )
 
-    formatted_lines.append(block)
+        formatted_lines.append(block)
 
-pretty_text = "\n\n".join(formatted_lines)
+    pretty_text = "\n\n".join(formatted_lines)
+
+    return {
+        "count": len(results),
+        "results": results[:10],
+        "pretty_text": pretty_text
+    }
