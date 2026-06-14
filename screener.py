@@ -5,7 +5,7 @@ def run_screener():
 
     API_KEY = os.environ.get("FMP_API_KEY")
 
-    symbols = "AAPL,MSFT,NVDA,AMZN,META,TSLA,GOOGL,AMD,INTC,NFLX"
+    symbols = "AAPL,MSFT"
 
     url = f"https://financialmodelingprep.com/api/v3/quote/{symbols}?apikey={API_KEY}"
 
