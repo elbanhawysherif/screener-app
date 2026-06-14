@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "PRO SCREENER RUNNING"
+    return "PRO SIGNAL ENGINE RUNNING"
 
 @app.route("/run")
 def run():
