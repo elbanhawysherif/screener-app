@@ -9,39 +9,23 @@ def run_screener():
 
     url = f"https://financialmodelingprep.com/api/v3/quote/{symbols}?apikey={API_KEY}"
 
-    try:
-        r = requests.get(url, timeout=15)
-        data = r.json()
+    r = requests.get(url, timeout=15)
+    data = r.json()
 
-        results = []
+    results = []
 
-        if isinstance(data, list):
+    if isinstance(data, list):
 
-            for stock in data:
+        for stock in data:
 
-                price = stock.get("price")
+            price = stock.get("price")
 
-                if price is None:
-                    continue
+            if price is None:
+                continue
 
-                results.append({
-                    "symbol": stock.get("symbol"),
-                    "price": price,
-                    "change": stock.get("change"),
-                    "changePercent": stock.get("changesPercentage")
-                })
+            results.append({
+                "symbol": stock.get("symbol"),
+                "price": price
+            })
 
-        # sort low → high
-        results = sorted(results, key=lambda x: x["price"])
-
-        return {
-            "count": len(results),
-            "results": results
-        }
-
-    except Exception as e:
-        return {
-            "count": 0,
-            "results": [],
-            "error": str(e)
-        }
+    return results
