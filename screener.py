@@ -1,25 +1,47 @@
 import requests
-
-API_KEY = "7wfaoju6F7rTcZymBjnZCZtJLHUDykmx"  # temporarily hardcoded for testing
-
+import os
 
 def run_screener():
 
+    API_KEY = os.environ.get("FMP_API_KEY")
+
+    if not API_KEY:
+        return [{"error": "Missing API key in environment variables"}]
+
     url = f"https://financialmodelingprep.com/api/v3/stock/list?apikey={API_KEY}"
 
-    r = requests.get(url, timeout=30)
+    try:
+        r = requests.get(url, timeout=30)
 
-    data = r.json()
+        # If API fails, show raw response instead of crashing
+        try:
+            data = r.json()
+        except Exception:
+            return [{
+                "error": "Invalid JSON response",
+                "status_code": r.status_code,
+                "raw_text": r.text[:300]
+            }]
 
-    # keep only first 10 to test
-    results = []
+        # If API returns error message
+        if isinstance(data, dict):
+            return [{
+                "error": "API returned error",
+                "response": data
+            }]
 
-    for stock in data[:10]:
+        results = []
 
-        results.append({
-            "symbol": stock.get("symbol"),
-            "name": stock.get("name"),
-            "price": stock.get("price"),
-        })
+        for stock in data[:10]:
+            results.append({
+                "symbol": stock.get("symbol"),
+                "name": stock.get("name"),
+                "price": stock.get("price")
+            })
 
-    return results
+        return results
+
+    except Exception as e:
+        return [{
+            "error": str(e)
+        }]
