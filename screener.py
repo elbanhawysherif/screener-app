@@ -1,10 +1,24 @@
-def run_screener():
+from flask import Flask, jsonify
+import traceback
 
-    from screener import get_sp500_symbols
+app = Flask(__name__)
 
-    symbols = get_sp500_symbols()
+@app.route("/run")
+def run():
 
-    return {
-        "count": len(symbols),
-        "sample": symbols[:10]
-    }
+    try:
+        from screener import get_sp500_symbols
+
+        symbols = get_sp500_symbols()
+
+        return jsonify({
+            "count": len(symbols),
+            "sample": symbols[:10]
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e),
+            "trace": traceback.format_exc()
+        })
