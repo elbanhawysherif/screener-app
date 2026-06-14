@@ -132,17 +132,18 @@ def run_screener():
     # -----------------------------
     # FORMATTED OUTPUT (ONE STOCK PER LINE)
     # -----------------------------
+
     formatted_lines = []
 
-    for r in results[:10]:
+for r in results[:10]:
 
-        formatted_lines.append(
-            f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
-            f"{r['signal']} | Score: {r['score']}\n→ {r['explanation']}"
-        )
+    block = (
+        f"{r['symbol']} | ${r['price']} | {r['change_pct']}% | "
+        f"{r['signal']} | Score: {r['score']}\n"
+        f"{r['explanation']}"
+    )
 
-    return {
-        "count": len(results),
-        "results": results[:10],
-        "formatted": "\n\n".join(formatted_lines)
+    formatted_lines.append(block)
+
+pretty_text = "\n\n".join(formatted_lines)
     }
