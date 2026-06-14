@@ -1,7 +1,7 @@
 import requests
 import os
 
-API_KEY = os.environ.get("FMP_API_KEY")
+API_KEY = os.environ.get("7wfaoju6F7rTcZymBjnZCZtJLHUDykmx")
 
 
 def run_screener():
