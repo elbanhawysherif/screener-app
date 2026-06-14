@@ -3,45 +3,57 @@ import os
 
 def run_screener():
 
-    API_KEY = os.environ.get("FMP_API_KEY")
+    API_KEY = os.environ.get("7wfaoju6F7rTcZymBjnZCZtJLHUDykmx")
 
     if not API_KEY:
-        return [{"error": "Missing API key in environment variables"}]
+        return [{"error": "Missing FMP_API_KEY in environment variables"}]
 
-    url = f"https://financialmodelingprep.com/api/v3/stock/list?apikey={API_KEY}"
+    # Step 1: small universe (reliable endpoint)
+    symbols = ["AAPL", "MSFT", "NVDA", "AMZN", "META", "TSLA", "GOOGL", "AMD", "INTC", "NFLX"]
 
-    try:
-        r = requests.get(url, timeout=30)
+    results = []
 
-        # If API fails, show raw response instead of crashing
+    for symbol in symbols:
+
+        url = f"https://financialmodelingprep.com/api/v3/quote/{symbol}?apikey={API_KEY}"
+
+        r = requests.get(url, timeout=15)
+
         try:
             data = r.json()
-        except Exception:
-            return [{
-                "error": "Invalid JSON response",
-                "status_code": r.status_code,
-                "raw_text": r.text[:300]
-            }]
 
-        # If API returns error message
-        if isinstance(data, dict):
-            return [{
-                "error": "API returned error",
-                "response": data
-            }]
+            # FMP returns a LIST
+            if isinstance(data, list) and len(data) > 0:
 
-        results = []
+                stock = data[0]
 
-        for stock in data[:10]:
+                results.append({
+                    "symbol": stock.get("symbol"),
+                    "price": stock.get("price"),
+                    "change": stock.get("change"),
+                    "changesPercent": stock.get("changesPercentage"),
+                    "volume": stock.get("volume"),
+                })
+
+            else:
+                results.append({
+                    "symbol": symbol,
+                    "error": "No data returned"
+                })
+
+        except Exception as e:
             results.append({
-                "symbol": stock.get("symbol"),
-                "name": stock.get("name"),
-                "price": stock.get("price")
+                "symbol": symbol,
+                "error": str(e)
             })
 
-        return results
+    # Step 2: sort by price (low → high)
+    results = sorted(
+        [r for r in results if "price" in r and r["price"] is not None],
+        key=lambda x: x["price"]
+    )
 
-    except Exception as e:
-        return [{
-            "error": str(e)
-        }]
+    return {
+        "count": len(results),
+        "results": results
+    }
