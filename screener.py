@@ -1,21 +1,25 @@
 import requests
-import os
 
-API_KEY = os.environ.get("7wfaoju6F7rTcZymBjnZCZtJLHUDykmx")
+API_KEY = "7wfaoju6F7rTcZymBjnZCZtJLHUDykmx"  # temporarily hardcoded for testing
 
-
-import requests
-import os
 
 def run_screener():
 
-    key = os.environ.get("FMP_API_KEY")
+    url = f"https://financialmodelingprep.com/api/v3/stock/list?apikey={API_KEY}"
 
-    url = f"https://financialmodelingprep.com/api/v3/quote/AAPL?apikey={key}"
+    r = requests.get(url, timeout=30)
 
-    r = requests.get(url, timeout=20)
+    data = r.json()
 
-    return [{
-        "status_code": r.status_code,
-        "response": r.json()
-    }]
+    # keep only first 10 to test
+    results = []
+
+    for stock in data[:10]:
+
+        results.append({
+            "symbol": stock.get("symbol"),
+            "name": stock.get("name"),
+            "price": stock.get("price"),
+        })
+
+    return results
