@@ -35,7 +35,7 @@ def get_universe(key):
 
         symbols.append(symbol)
 
-    return symbols[:50]   # 👈 reduced for stability
+    return symbols[:200]   # 👈 reduced for stability
 
 
 # -----------------------------
