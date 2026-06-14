@@ -3,19 +3,42 @@ import os
 
 def run_screener():
 
-    API_KEY = os.environ.get("FMP_API_KEY")
+    key = os.environ.get("FINNHUB_API_KEY")
 
-    url = f"https://financialmodelingprep.com/api/v3/quote/AAPL?apikey={API_KEY}"
+    symbols = [
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "AMZN",
+        "META"
+    ]
 
-    try:
+    results = []
+
+    for symbol in symbols:
+
+        url = (
+            f"https://finnhub.io/api/v1/quote"
+            f"?symbol={symbol}"
+            f"&token={key}"
+        )
+
         r = requests.get(url, timeout=15)
 
-        return [{
-            "status_code": r.status_code,
-            "response_text": r.text[:1000]
-        }]
+        if r.status_code != 200:
+            continue
 
-    except Exception as e:
-        return [{
-            "error": str(e)
-        }]
+        data = r.json()
+
+        results.append({
+            "symbol": symbol,
+            "price": data.get("c"),
+            "high": data.get("h"),
+            "low": data.get("l"),
+            "open": data.get("o"),
+            "previous_close": data.get("pc")
+        })
+
+    results.sort(key=lambda x: x["price"] or 0)
+
+    return results
