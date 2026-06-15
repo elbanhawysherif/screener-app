@@ -78,7 +78,7 @@ def get_universe():
     data = r.json()
 
     # keep only first 100 symbols for performance
-    return [x["symbol"] for x in data[:30]]
+    return [x["symbol"] for x in data[:10]]
 
 
 # -----------------------------
