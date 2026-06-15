@@ -21,7 +21,7 @@ def home():
 # -----------------------------
 @app.route("/refresh")
 def refresh():
-
+print("WRITE PATH:", os.path.abspath(CACHE_FILE))
     data = run_screener()
 
     try:
@@ -47,7 +47,7 @@ def refresh():
 # -----------------------------
 @app.route("/run-html")
 def run_html():
-
+print("WRITE PATH:", os.path.abspath(CACHE_FILE))
     try:
         if not os.path.exists(CACHE_FILE):
             return "Cache not ready. Run /refresh first.", 200
