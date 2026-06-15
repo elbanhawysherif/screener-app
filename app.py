@@ -5,8 +5,8 @@ from screener import run_screener
 
 app = Flask(__name__)
 
-CACHE_FILE = "cache.json"
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CACHE_FILE = os.path.join(BASE_DIR, "cache.json")
 
 # -----------------------------
 # HEALTH CHECK
@@ -21,22 +21,25 @@ def home():
 # -----------------------------
 @app.route("/refresh")
 def refresh():
-    """
-    Runs full screener and saves result to cache.json
-    """
+
     data = run_screener()
 
-    # SAVE CACHE (THIS IS CRITICAL)
     try:
-        with open(CACHE_FILE, "w") as f:
-            json.dump(data, f)
-    except Exception as e:
-        return jsonify({"error": "cache write failed", "details": str(e)}), 500
+        tmp_file = CACHE_FILE + ".tmp"
 
-    return jsonify({
-        "status": "refreshed",
-        "count": data.get("count", 0)
-    })
+        with open(tmp_file, "w") as f:
+            json.dump(data, f)
+
+        # atomic replace (prevents partial reads)
+        os.replace(tmp_file, CACHE_FILE)
+
+        return jsonify({
+            "status": "refreshed",
+            "count": data.get("count", 0)
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # -----------------------------
@@ -45,20 +48,22 @@ def refresh():
 @app.route("/run-html")
 def run_html():
 
-    if not os.path.exists(CACHE_FILE):
-        return "Cache not ready. Run /refresh first.", 500
-
     try:
+        if not os.path.exists(CACHE_FILE):
+            return "Cache not ready. Run /refresh first.", 200
+
         with open(CACHE_FILE, "r") as f:
             data = json.load(f)
 
-        return Response(
-            data.get("pretty_html", ""),
-            mimetype="text/html"
-        )
+        html = data.get("pretty_html", "")
+
+        if not html:
+            return "Cache empty. Run /refresh again.", 200
+
+        return Response(html, mimetype="text/html")
 
     except Exception as e:
-        return f"Cache read error: {str(e)}", 500
+        return f"Cache error: {str(e)}", 500
 
 
 # -----------------------------
