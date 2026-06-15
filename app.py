@@ -2,7 +2,7 @@ from flask import Flask, jsonify, Response
 import json
 import os
 from screener import run_screener
-
+print("🔥 APP IS STARTING")
 app = Flask(__name__)
 
 CACHE = {
