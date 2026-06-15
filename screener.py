@@ -1,6 +1,10 @@
 import requests
 import os
-
+@app.route("/debug")
+def debug():
+    return {
+        "routes": [str(rule) for rule in app.url_map.iter_rules()]
+    }
 
 # -----------------------------
 # SIGNAL CLASSIFICATION
