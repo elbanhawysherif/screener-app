@@ -6,8 +6,6 @@ def debug():
         "routes": [str(rule) for rule in app.url_map.iter_rules()]
     }
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_FILE = os.path.join(BASE_DIR, "cache.json")
 
 # -----------------------------
 # SIGNAL CLASSIFICATION
