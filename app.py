@@ -5,8 +5,9 @@ from screener import run_screener
 
 app = Flask(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_FILE = os.path.join(BASE_DIR, "cache.json")
+CACHE = {
+    "data": None
+}
 
 # -----------------------------
 # HEALTH CHECK
