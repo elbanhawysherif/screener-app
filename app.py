@@ -3,7 +3,6 @@ from screener import run_screener
 
 app = Flask(__name__)
 
-
 @app.route("/")
 def home():
     return "PRO SIGNAL ENGINE RUNNING"
